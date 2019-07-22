@@ -8,6 +8,7 @@
 # Cython build directory and .c/.so files
 /build/
 *.c
+*.pyd
 *.so
 
 # ipython notebook files
@@ -34,4 +35,7 @@
 # Sphinx documentation
 /docs/_build/
 
-env/
+# Visual Studio
+/env/
+/obj/
+/.eggs/
