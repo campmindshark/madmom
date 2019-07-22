@@ -118,4 +118,18 @@
     </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <ItemGroup>
+    <OutputFiles Include="$(ProjectDir)\build">
+      <Visible>false</Visible>
+    </OutputFiles>
+  </ItemGroup>
+  <Target Name="CoreCompile" />
+  <Target Name="AfterBuild" Inputs="@(Compile)" Outputs="$(ProjectDir)\build">
+    <RunPythonCommand
+      Target="$(ProjectDir)setup.py"
+      TargetType="script"
+      Arguments="develop"
+      ExecuteIn="none"
+    />
+  </Target>
 </Project>
