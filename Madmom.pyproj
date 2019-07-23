@@ -123,8 +123,19 @@
       <Visible>false</Visible>
     </OutputFiles>
   </ItemGroup>
+  <Target
+    Name="BeforeBuild"
+    Inputs="$(ProjectDir)\requirements.txt"
+    Outputs="$(ProjectDir)\env\pyvenv.cfg"
+  >
+    <Exec Command="python -m venv env &amp; cd env &amp; Scripts\pip install -r ..\requirements.txt" />
+  </Target>
   <Target Name="CoreCompile" />
-  <Target Name="AfterBuild" Inputs="@(Compile)" Outputs="$(ProjectDir)\build">
+  <Target
+    Name="AfterBuild"
+    Inputs="@(Compile)"
+    Outputs="$(ProjectDir)\build\temp.win-amd64-3.7/Release/madmom/features/beats_crf.obj"
+  >
     <RunPythonCommand
       Target="$(ProjectDir)setup.py"
       TargetType="script"
