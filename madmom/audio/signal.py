@@ -1413,11 +1413,30 @@ class Stream(object):
         self.hop_size = int(hop_size)
         # init PyAudio
         self.pa = pyaudio.PyAudio()
+
+
+        # ****************************************************************************
+        # *                  CUSTOM BLOCK FOR MINDSHARK/SPECTRUM USAGE               *
+        # *                           (INPUT DEVICE SELECTION)                       *
+        # ****************************************************************************
+        input_device_index = None 
+        if (kwargs.get('host_api') is not None and
+            kwargs.get('audio_input') is not None):
+            host_api = kwargs['host_api']
+            audio_input_idx = kwargs['audio_input']
+            input_device_index = self.pa.get_device_info_by_host_api_device_index(host_api, 
+                                                                                  audio_input_idx)
+
+
+        # ****************************************************************************
+        # *               END CUSTOM BLOCK -- BACK TO STANDARD MADMOM CODE           *
+        # ****************************************************************************
         # init a stream to read audio samples from
         self.stream = self.pa.open(rate=self.sample_rate,
                                    channels=self.num_channels,
                                    format=pyaudio.paFloat32, input=True,
                                    frames_per_buffer=self.hop_size,
+                                   input_device_index=input_device_index,
                                    start=True)
         # create a buffer
         self.buffer = BufferProcessor(self.frame_size)
