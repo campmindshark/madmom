@@ -85,7 +85,7 @@ def main():
     audio_instance = pyaudio.PyAudio() 
 
     # first collect host apis to find the index of the 'WASAPI' 
-    target_api = r'OSS'
+    target_api = r'WASAPI'
     wasapi_index = None 
     host_api_infos = [] 
     for idx in range(audio_instance.get_host_api_count()):
