@@ -19,94 +19,6 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="docs\conf.py" />
-    <Compile Include="madmom\audio\cepstrogram.py" />
-    <Compile Include="madmom\audio\chroma.py" />
-    <Compile Include="madmom\audio\filters.py" />
-    <Compile Include="madmom\audio\hpss.py" />
-    <Compile Include="madmom\audio\signal.py" />
-    <Compile Include="madmom\audio\spectrogram.py" />
-    <Compile Include="madmom\audio\stft.py" />
-    <Compile Include="madmom\audio\__init__.py" />
-    <Compile Include="madmom\conftest.py" />
-    <Compile Include="madmom\evaluation\beats.py" />
-    <Compile Include="madmom\evaluation\chords.py" />
-    <Compile Include="madmom\evaluation\key.py" />
-    <Compile Include="madmom\evaluation\notes.py" />
-    <Compile Include="madmom\evaluation\onsets.py" />
-    <Compile Include="madmom\evaluation\tempo.py" />
-    <Compile Include="madmom\evaluation\__init__.py" />
-    <Compile Include="madmom\features\beats.py" />
-    <Compile Include="madmom\features\beats_hmm.py" />
-    <Compile Include="madmom\features\chords.py" />
-    <Compile Include="madmom\features\downbeats.py" />
-    <Compile Include="madmom\features\key.py" />
-    <Compile Include="madmom\features\notes.py" />
-    <Compile Include="madmom\features\onsets.py" />
-    <Compile Include="madmom\features\tempo.py" />
-    <Compile Include="madmom\features\__init__.py" />
-    <Compile Include="madmom\io\audio.py" />
-    <Compile Include="madmom\io\midi.py" />
-    <Compile Include="madmom\io\__init__.py" />
-    <Compile Include="madmom\ml\crf.py" />
-    <Compile Include="madmom\ml\gmm.py" />
-    <Compile Include="madmom\ml\nn\activations.py" />
-    <Compile Include="madmom\ml\nn\layers.py" />
-    <Compile Include="madmom\ml\nn\__init__.py" />
-    <Compile Include="madmom\ml\__init__.py" />
-    <Compile Include="madmom\processors.py" />
-    <Compile Include="madmom\utils\midi.py" />
-    <Compile Include="madmom\utils\stats.py" />
-    <Compile Include="madmom\utils\__init__.py" />
-    <Compile Include="madmom\__init__.py" />
-    <Compile Include="setup.py" />
-    <Compile Include="tests\test_audio_chroma.py" />
-    <Compile Include="tests\test_audio_comb_filters.py" />
-    <Compile Include="tests\test_audio_filters.py" />
-    <Compile Include="tests\test_audio_signal.py" />
-    <Compile Include="tests\test_audio_spectrogram.py" />
-    <Compile Include="tests\test_audio_stft.py" />
-    <Compile Include="tests\test_bin.py" />
-    <Compile Include="tests\test_bin_evaluate.py" />
-    <Compile Include="tests\test_evaluation.py" />
-    <Compile Include="tests\test_evaluation_beats.py" />
-    <Compile Include="tests\test_evaluation_chords.py" />
-    <Compile Include="tests\test_evaluation_key.py" />
-    <Compile Include="tests\test_evaluation_notes.py" />
-    <Compile Include="tests\test_evaluation_onsets.py" />
-    <Compile Include="tests\test_evaluation_tempo.py" />
-    <Compile Include="tests\test_features_beats.py" />
-    <Compile Include="tests\test_features_beats_hmm.py" />
-    <Compile Include="tests\test_features_chords.py" />
-    <Compile Include="tests\test_features_downbeats.py" />
-    <Compile Include="tests\test_features_key.py" />
-    <Compile Include="tests\test_features_notes.py" />
-    <Compile Include="tests\test_features_onsets.py" />
-    <Compile Include="tests\test_features_tempo.py" />
-    <Compile Include="tests\test_io.py" />
-    <Compile Include="tests\test_io_audio.py" />
-    <Compile Include="tests\test_io_midi.py" />
-    <Compile Include="tests\test_ml_crf.py" />
-    <Compile Include="tests\test_ml_hmm.py" />
-    <Compile Include="tests\test_ml_nn.py" />
-    <Compile Include="tests\test_processors.py" />
-    <Compile Include="tests\test_utils.py" />
-    <Compile Include="tests\test_utils_midi.py" />
-    <Compile Include="tests\__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="docs" />
-    <Folder Include="madmom" />
-    <Folder Include="madmom\audio" />
-    <Folder Include="madmom\evaluation" />
-    <Folder Include="madmom\features" />
-    <Folder Include="madmom\io" />
-    <Folder Include="madmom\ml" />
-    <Folder Include="madmom\ml\nn" />
-    <Folder Include="madmom\utils" />
-    <Folder Include="tests" />
-  </ItemGroup>
-  <ItemGroup>
     <Interpreter Include="env\">
       <Id>env</Id>
       <Version>3.7</Version>
@@ -123,24 +35,14 @@
       <Visible>false</Visible>
     </OutputFiles>
   </ItemGroup>
-  <Target
-    Name="BeforeBuild"
-    Inputs="$(ProjectDir)\requirements.txt"
-    Outputs="$(ProjectDir)\env\pyvenv.cfg"
-  >
+  <ItemGroup>
+    <Compile Include="setup.py" />
+  </ItemGroup>
+  <Target Name="BeforeBuild" Inputs="$(ProjectDir)\requirements.txt" Outputs="$(ProjectDir)\env\pyvenv.cfg">
     <Exec Command="python -m venv env &amp; cd env &amp; Scripts\pip install -r ..\requirements.txt" />
   </Target>
   <Target Name="CoreCompile" />
-  <Target
-    Name="AfterBuild"
-    Inputs="@(Compile)"
-    Outputs="$(ProjectDir)\build\temp.win-amd64-3.7/Release/madmom/features/beats_crf.obj"
-  >
-    <RunPythonCommand
-      Target="$(ProjectDir)setup.py"
-      TargetType="script"
-      Arguments="develop"
-      ExecuteIn="none"
-    />
+  <Target Name="AfterBuild" Inputs="@(Compile)" Outputs="$(ProjectDir)\build\temp.win-amd64-3.7/Release/madmom/features/beats_crf.obj">
+    <RunPythonCommand Target="$(ProjectDir)setup.py" TargetType="script" Arguments="develop" ExecuteIn="none" />
   </Target>
 </Project>
