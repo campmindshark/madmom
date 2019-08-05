@@ -81,7 +81,7 @@ def load_events(filename):
     return events[:, 0]
 
 
-def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None, 
+def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None,
                  prefix=None):
     """
     Write the events to a file, one event per line.
@@ -99,7 +99,7 @@ def write_events(events, filename, fmt='%.3f', delimiter='\t', header=None,
         String or character separating columns.
     header : str, optional
         String that will be written at the beginning of the file as comment.
-    prefix : str, optional 
+    prefix : str, optional
         String that will be written at the beginning of every line to this file
 
     """
@@ -183,7 +183,7 @@ def write_beats(beats, filename, fmt=None, delimiter='\t', header=None):
     if fmt is None and beats.ndim == 2:
         fmt = ['%.3f', '%d']
     elif fmt is None:
-        fmt = '%.3f'        
+        fmt = '%.3f'
     write_events(beats, filename, fmt, delimiter, header, prefix='BEAT:')
 
 

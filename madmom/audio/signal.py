@@ -1419,12 +1419,12 @@ class Stream(object):
         # *                  CUSTOM BLOCK FOR MINDSHARK/SPECTRUM USAGE               *
         # *                           (INPUT DEVICE SELECTION)                       *
         # ****************************************************************************
-        input_device_index = None 
+        input_device_index = None
         if (kwargs.get('host_api') is not None and
             kwargs.get('audio_input') is not None):
             host_api = kwargs['host_api']
             audio_input_idx = kwargs['audio_input']
-            input_device_index = self.pa.get_device_info_by_host_api_device_index(host_api, 
+            input_device_index = self.pa.get_device_info_by_host_api_device_index(host_api,
                                                                                   audio_input_idx)
 
 
