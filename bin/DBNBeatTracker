@@ -137,7 +137,8 @@ def main():
         out_processor = ActivationsProcessor(mode='w', **vars(args))
     else:
         # track the beats with a DBN and output them
-        beat_processor = DBNBeatTrackingProcessor(**vars(args))
+        beat_processor = DBNBeatTrackingProcessor(**vars(args), 
+                                                  absolute_time=True)
         out_processor = [beat_processor, write_beats]
 
     # create an IOProcessor

@@ -10,7 +10,7 @@ This module contains beat tracking related functionality.
 from __future__ import absolute_import, division, print_function
 
 import sys
-
+import time
 import numpy as np
 
 from ..audio.signal import signal_frame, smooth as smooth_signal
@@ -916,6 +916,12 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
             self.last_beat = 0
             self.tempo = 0
 
+
+        #### CUSTOM BLOCK FOR MINDSHARK
+        self.absolute_time = kwargs.get('absolute_time', False)
+        self.ticktime = time.monotonic()
+        #### END CUSTOM BLOCK FOR MINDSHARK
+
     def reset(self):
         """Reset the DBNBeatTrackingProcessor."""
         # pylint: disable=attribute-defined-outside-init
@@ -927,6 +933,10 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         self.strength = 0
         self.last_beat = 0
         self.tempo = 0
+
+        #### CUSTOM BLOCK FOR MINDSHARK
+        self.ticktime = time.monotonic()
+        #### END CUSTOM BLOCK FOR MINDSHARK
 
     def process_offline(self, activations, **kwargs):
         """
@@ -1065,7 +1075,14 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
         # increase counter
         self.counter += len(activations)
         # return beat(s)
-        return np.array(beats_)
+        beat_array = np.array(beats_)
+
+        #### CUSTOM MINDSHARK BLOCK
+        if self.absolute_time:
+            beat_array = beat_array + self.ticktime
+        #### END CUSTOM MINDSHARK BLOCK
+
+        return beat_array
 
     process_forward = process_online
 
