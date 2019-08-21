@@ -919,7 +919,7 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
 
         #### CUSTOM BLOCK FOR MINDSHARK
         self.absolute_time = kwargs.get('absolute_time', False)
-        self.ticktime = time.monotonic()
+        self.ticktime = None
         #### END CUSTOM BLOCK FOR MINDSHARK
 
     def reset(self):
@@ -1079,6 +1079,8 @@ class DBNBeatTrackingProcessor(OnlineProcessor):
 
         #### CUSTOM MINDSHARK BLOCK
         if self.absolute_time:
+            if self.ticktime is None:
+                self.ticktime = time.monotonic()
             beat_array = beat_array + self.ticktime
         #### END CUSTOM MINDSHARK BLOCK
 
