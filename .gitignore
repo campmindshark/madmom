@@ -34,8 +34,8 @@
 
 # Sphinx documentation
 /docs/_build/
+.eggs
 
 # Visual Studio
 /env/
 /obj/
-/.eggs/

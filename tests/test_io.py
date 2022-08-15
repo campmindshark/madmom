@@ -64,6 +64,7 @@ class TestLoadBeatsFunction(unittest.TestCase):
     def test_load_beats_from_file(self):
         beats = load_beats(pj(ANNOTATIONS_PATH, 'sample.beats'))
         from tests.test_evaluation_beats import SAMPLE_BEAT_ANNOTATIONS
+
         self.assertTrue(np.allclose(beats, SAMPLE_BEAT_ANNOTATIONS))
 
     def test_load_downbeats_from_file(self):
@@ -123,6 +124,15 @@ class TestLoadNotesFunction(unittest.TestCase):
         self.assertIsInstance(annotations, np.ndarray)
         self.assertEqual(annotations.shape, (8, 4))
         self.assertTrue(np.allclose(annotations, ANNOTATIONS))
+
+
+class TestWriteNotesFunction(unittest.TestCase):
+
+    def test_values(self):
+        from tests.test_evaluation_notes import ANNOTATIONS
+        header = "MIDI notes for the stereo_sample.[flac|wav] file"
+        write_notes(ANNOTATIONS,
+                    pj(ANNOTATIONS_PATH, 'stereo_sample.notes'), header=header)
 
 
 class TestLoadOnsetsFunction(unittest.TestCase):
