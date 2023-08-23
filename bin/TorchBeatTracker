@@ -91,7 +91,7 @@ def main():
     # ****************************************************************************
     
     audio_instance = pyaudio.PyAudio()
-    '''
+    
     # first collect host apis to find the index of the 'WASAPI'
     target_api = r'WASAPI'
     wasapi_index = None
@@ -114,7 +114,7 @@ def main():
                    default=wasapi_index, const=wasapi_index)
     p.add_argument('--audio_input', action='store', dest='audio_input',
                     type=int, help='Which input index we want to use')
-    '''
+    
     # ****************************************************************************
     # *               END CUSTOM BLOCK -- BACK TO STANDARD MADMOM CODE           *
     # ****************************************************************************
