@@ -68,14 +68,14 @@ class RNNBeatProcessor(SequentialProcessor):
     """
 
     def __init__(self, post_processor=average_predictions, online=False,
-                 nn_files=None, **kwargs):
+                 nn_files=None, use_torch=False, **kwargs):
         # pylint: disable=unused-argument
         from ..audio.signal import SignalProcessor, FramedSignalProcessor
         from ..audio.stft import ShortTimeFourierTransformProcessor
         from ..audio.spectrogram import (
             FilteredSpectrogramProcessor, LogarithmicSpectrogramProcessor,
             SpectrogramDifferenceProcessor)
-        from ..ml.nn import NeuralNetworkEnsemble
+        from ..ml.nn import NeuralNetworkEnsemble, TorchNetwork, TorchTCN
         from ..models import BEATS_LSTM, BEATS_BLSTM
         # choose the appropriate models and set frame sizes accordingly
         if online:
@@ -106,8 +106,12 @@ class RNNBeatProcessor(SequentialProcessor):
         pre_processor = SequentialProcessor((sig, multi, np.hstack))
         # process the pre-processed signal with a NN ensemble and the given
         # post_processor
-        nn = NeuralNetworkEnsemble.load(nn_files,
-                                        ensemble_fn=post_processor, **kwargs)
+        if use_torch:
+            from ..piracy import TORCH_TCN_REG
+            nn = TorchTCN(**TORCH_TCN_REG)
+        else:
+            nn = NeuralNetworkEnsemble.load(nn_files,
+                                            ensemble_fn=post_processor, **kwargs)
         # instantiate a SequentialProcessor
         super(RNNBeatProcessor, self).__init__((pre_processor, nn))
 

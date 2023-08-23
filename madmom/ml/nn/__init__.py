@@ -13,7 +13,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 
 from ...processors import Processor, ParallelProcessor, SequentialProcessor
-
+from ...piracy.networks import BaseLSTM, OnlineLSTM, BaseTCN, OnlineTCN
+import torch
 
 def average_predictions(predictions):
     """
@@ -57,6 +58,41 @@ def average_predictions(predictions):
     else:
         # average predictions
         return avg(predictions)
+
+
+
+
+
+class TorchNetwork(Processor):
+
+    def __init__(self, input_size, hidden_size, num_layers, torch_loc):
+        base_lstm = BaseLSTM(input_size, hidden_size, num_layers)
+        base_lstm.load_state_dict(torch.load(torch_loc, map_location='cpu'))
+
+        self.online_lstm = OnlineLSTM(base_lstm)
+
+    @torch.no_grad()
+    def process(self, data, reset=False, **kwargs):
+        if reset: self.online_lstm.reset()
+        data = torch.Tensor(data).view(1, -1)
+        output = self.online_lstm(data).item()
+        return output
+
+
+class TorchTCN(Processor):
+    def __init__(self, input_size, hidden_size, num_layers, torch_loc, hist_len=10*100, kernel_size=5, buffer_size=10):
+        base_tcn = BaseTCN(input_size, 1, [hidden_size] * num_layers, kernel_size=kernel_size, dropout=0.2)
+        base_tcn.eval()
+        base_tcn.load_state_dict(torch.load(torch_loc, map_location='cpu'))
+        self.online_tcn = OnlineTCN(base_tcn, hist_len, buffer_size=buffer_size)
+
+    @torch.no_grad()
+    def process(self, data, reset=False, **kwargs):
+        if reset: self.online_tcn.reset()
+        data = torch.Tensor(data).view(1, -1)
+        return self.online_tcn(data).item()
+
+
 
 
 class NeuralNetwork(Processor):
