@@ -85,28 +85,30 @@ def main():
     audio_instance = pyaudio.PyAudio()
 
     # first collect host apis to find the index of the 'WASAPI'
-    target_api = r'WASAPI'
-    wasapi_index = None
-    host_api_infos = []
-    for idx in range(audio_instance.get_host_api_count()):
-        host_api_info = audio_instance.get_host_api_info_by_index(idx)
-        host_api_infos.append(host_api_info)
-        if re.search(target_api, host_api_info['name']) is not None:
-            wasapi_index = idx
-            break
+    try:
+        target_api = r'WASAPI'
+        wasapi_index = None
+        host_api_infos = []
+        for idx in range(audio_instance.get_host_api_count()):
+            host_api_info = audio_instance.get_host_api_info_by_index(idx)
+            host_api_infos.append(host_api_info)
+            if re.search(target_api, host_api_info['name']) is not None:
+                wasapi_index = idx
+                break
 
-    if wasapi_index is None:
-        print("WASAPI API not found in list of host API's...")
-        for info_dict in host_api_infos:
-            print(info_dict['name'])
-        raise Exception("No WASAPI INDEX FOUND!")
+        if wasapi_index is None:
+            print("WASAPI API not found in list of host API's...")
+            for info_dict in host_api_infos:
+                print(info_dict['name'])
+            raise Exception("No WASAPI INDEX FOUND!")
 
 
-    p.add_argument('--host_api', action='store_const', dest='host_api',
-                   default=wasapi_index, const=wasapi_index)
-    p.add_argument('--audio_input', action='store', dest='audio_input',
-                    type=int, help='Which input index we want to use')
-
+        p.add_argument('--host_api', action='store_const', dest='host_api',
+                       default=wasapi_index, const=wasapi_index)
+        p.add_argument('--audio_input', action='store', dest='audio_input',
+                        type=int, help='Which input index we want to use')
+    except:
+        print("WARNING WASAPI NOT FOUND")
     # ****************************************************************************
     # *               END CUSTOM BLOCK -- BACK TO STANDARD MADMOM CODE           *
     # ****************************************************************************

@@ -107,7 +107,7 @@ class RNNBeatProcessor(SequentialProcessor):
         # process the pre-processed signal with a NN ensemble and the given
         # post_processor
         if use_torch:
-            from ..piracy import TORCH_TCN_REG
+            from ..piracy import TORCH_TCN_REG, TORCH_TCN_SMALL, TORCH_TCN_TINY
             nn = TorchTCN(**TORCH_TCN_REG)
         else:
             nn = NeuralNetworkEnsemble.load(nn_files,
