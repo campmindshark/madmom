@@ -1463,6 +1463,22 @@ class Stream(object):
             )
             input_device_index = input_device['index']
 
+            # WASAPI shared-mode capture requires the stream's sample rate to
+            # match the device's native mix format exactly; opening at madmom's
+            # default rate against a device running a different rate (e.g. the
+            # 48 kHz VoiceMeeter virtual devices vs. the default 44.1 kHz) fails
+            # with PortAudio "Invalid device" (-9996) and kills beat detection.
+            # Open at the device's native rate instead. The beat features (a
+            # fixed-band log filterbank, defined in Hz) and the emitted beat
+            # times (frame_idx / fps) are both sample-rate invariant, so we just
+            # rescale hop_size to hold the frame rate (fps) constant.
+            native_rate = int(round(input_device['defaultSampleRate']))
+            if native_rate and native_rate != self.sample_rate:
+                self.hop_size = int(round(
+                    self.hop_size * native_rate / float(self.sample_rate)
+                ))
+                self.sample_rate = native_rate
+
 
         # ****************************************************************************
         # *               END CUSTOM BLOCK -- BACK TO STANDARD MADMOM CODE           *
