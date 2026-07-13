@@ -10,8 +10,7 @@ This module contains onset detection related functionality.
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-from scipy.ndimage import uniform_filter
-from scipy.ndimage.filters import maximum_filter, minimum_filter
+from scipy.ndimage import maximum_filter, minimum_filter, uniform_filter
 
 from ..audio.signal import smooth as smooth_signal
 from ..processors import (BufferProcessor, OnlineProcessor, ParallelProcessor,
@@ -1126,7 +1125,8 @@ class OnsetPeakPickingProcessor(OnlineProcessor):
         """
         # cast as 1-dimensional array
         # Note: in online mode, activations are just float values
-        activations = np.array(activations, copy=False, subok=True, ndmin=1)
+        if not isinstance(activations, np.ndarray):
+            activations = np.array(activations, ndmin=1)
         # buffer data
         if self.buffer is None or reset:
             # reset the processor

@@ -12,8 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from scipy.ndimage import convolve as _scipy_convolve
-from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage import convolve as _scipy_convolve, maximum_filter
 
 from .activations import sigmoid, tanh
 
@@ -1221,7 +1220,7 @@ class ReshapeLayer(Layer):
             Reshaped data.
 
         """
-        return np.reshape(data, self.newshape, self.order)
+        return np.reshape(data, self.newshape, order=self.order)
 
 
 class AverageLayer(Layer):
