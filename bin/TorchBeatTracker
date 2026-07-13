@@ -8,6 +8,7 @@ DBNBeatTracker beat tracking algorithm.
 from __future__ import absolute_import, division, print_function
 
 import argparse
+from functools import partial
 
 from madmom.audio import SignalProcessor
 from madmom.features import (ActivationsProcessor, DBNBeatTrackingProcessor,
@@ -112,7 +113,7 @@ def main():
 
 
         p.add_argument('--host_api', action='store_const', dest='host_api',
-                       default=wasapi_index, const=wasapi_index)
+                       default=None, const=wasapi_index)
         p.add_argument('--audio_input', action='store', dest='audio_input',
                         type=int, help='Which input index we want to use')
     except:
@@ -151,7 +152,10 @@ def main():
     else:
         # track the beats with a DBN and output them
         beat_processor = DBNBeatTrackingProcessor(**vars(args))
-        out_processor = [beat_processor, write_beats]
+        beat_writer = write_beats
+        if args.host_api is not None:
+            beat_writer = partial(write_beats, prefix='BEAT:')
+        out_processor = [beat_processor, beat_writer]
 
     # create an IOProcessor
     #concat = ConcatProcessor(**vars(args))

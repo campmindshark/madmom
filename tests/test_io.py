@@ -12,6 +12,7 @@ tests.
 from __future__ import absolute_import, division, print_function
 
 import unittest
+from io import BytesIO
 from os.path import join as pj, join
 
 from madmom.io import *
@@ -71,6 +72,19 @@ class TestLoadBeatsFunction(unittest.TestCase):
         downbeats = load_beats(pj(ANNOTATIONS_PATH, 'sample.beats'),
                                downbeats=True)
         self.assertTrue(np.allclose(downbeats, 0.0913))
+
+
+class TestWriteBeatsFunction(unittest.TestCase):
+
+    def test_default_output_has_no_prefix(self):
+        output = BytesIO()
+        write_beats(np.array([0.1]), output)
+        self.assertEqual(output.getvalue(), b'0.100\n')
+
+    def test_optional_prefix(self):
+        output = BytesIO()
+        write_beats(np.array([0.1]), output, prefix='BEAT:')
+        self.assertEqual(output.getvalue(), b'BEAT:0.100\n')
 
 
 class TestLoadChordsFunction(unittest.TestCase):
