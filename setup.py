@@ -43,7 +43,7 @@ scripts = glob.glob('bin/*')
 package_data = [
     'models/LICENSE',
     'models/README.rst',
-    'models/beats/201[56]/*',
+    'models/beats/201[569]/*',
     'models/chords/*/*',
     'models/chroma/*/*',
     'models/downbeats/*/*',
@@ -69,7 +69,7 @@ classifiers = [
 
 # requirements
 requirements = [
-    'numpy>=1.13.4',
+    'numpy>=1.26,<2',
     'scipy>=1.13',
     'mido>=1.2.6',
 ]
@@ -101,7 +101,5 @@ setup(
     scripts=scripts,
     install_requires=requirements,
     cmdclass={'build_ext': build_ext},
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
     classifiers=classifiers,
 )

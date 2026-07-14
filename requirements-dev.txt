@@ -1,0 +1,12 @@
+-r requirements-runtime.txt
+
+# Build and test toolchain. Keep these aligned with pyproject.toml.
+colorama==0.4.6; platform_system == "Windows"
+Cython==3.2.8
+iniconfig==2.3.0
+pip==26.1.2
+pluggy==1.6.0
+Pygments==2.20.0
+pytest==8.4.2
+setuptools==83.0.0
+wheel==0.47.0

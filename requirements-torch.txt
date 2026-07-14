@@ -1,0 +1,6 @@
+# Optional neural-network trackers. Spectrum's DBN tracker does not require
+# these large packages, so they are intentionally excluded from the standard
+# build and portable runtime.
+torch
+torchaudio
+torchvision

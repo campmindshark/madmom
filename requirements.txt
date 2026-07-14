@@ -1,8 +1,2 @@
-cython>=0.25
-mido>=1.2.6
-numpy>=1.13.4
-scipy>=0.16
-torch
-torchvision 
-torchaudio
-../PyAudio-0.2.11-cp37-cp37m-win_amd64.whl
+# Convenience entry point for a complete development environment.
+-r requirements-dev.txt

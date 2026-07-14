@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|.build-env|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -19,10 +19,10 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Interpreter Include="env\">
-      <Id>env</Id>
-      <Version>3.7</Version>
-      <Description>env (Python 3.7 (64-bit))</Description>
+    <Interpreter Include=".build-env\">
+      <Id>.build-env</Id>
+      <Version>3.11</Version>
+      <Description>.build-env (Python 3.11 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
@@ -38,11 +38,9 @@
   <ItemGroup>
     <Compile Include="setup.py" />
   </ItemGroup>
-  <Target Name="BeforeBuild" Inputs="$(ProjectDir)\requirements.txt" Outputs="$(ProjectDir)\env\pyvenv.cfg">
-    <Exec Command="py -3.7 -m venv env &amp; cd env &amp; Scripts\pip install -r ..\requirements.txt" />
+  <Target Name="BeforeBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)scripts\build.ps1&quot; -SkipTests" />
   </Target>
   <Target Name="CoreCompile" />
-  <Target Name="AfterBuild" Inputs="@(Compile)" Outputs="$(ProjectDir)\build\temp.win-amd64-3.7/Release/madmom/features/beats_crf.obj">
-    <RunPythonCommand Target="$(ProjectDir)setup.py" TargetType="script" Arguments="develop" ExecuteIn="none" />
-  </Target>
+  <Target Name="AfterBuild" />
 </Project>

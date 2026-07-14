@@ -11,6 +11,7 @@ tests.
 
 from __future__ import absolute_import, division, print_function
 
+import tempfile
 import unittest
 from io import BytesIO
 from os.path import join as pj, join
@@ -43,21 +44,26 @@ class TestLoadEventsFunction(unittest.TestCase):
 class TestWriteEventsFunction(unittest.TestCase):
 
     def test_write_events_to_file(self):
-        write_events(EVENTS, pj(DATA_PATH, 'events.txt'))
-        annotations = load_events(pj(DATA_PATH, 'events.txt'))
-        self.assertTrue(np.allclose(annotations, EVENTS))
+        with tempfile.TemporaryDirectory() as directory:
+            path = pj(directory, 'events.txt')
+            write_events(EVENTS, path)
+            annotations = load_events(path)
+            self.assertTrue(np.allclose(annotations, EVENTS))
 
     def test_write_events_to_file_handle(self):
-        file_handle = open(pj(DATA_PATH, 'events.txt'), 'wb')
-        write_events(EVENTS, file_handle)
-        file_handle.close()
-        annotations = load_events(pj(DATA_PATH, 'events.txt'))
-        self.assertTrue(np.allclose(annotations, EVENTS))
+        with tempfile.TemporaryDirectory() as directory:
+            path = pj(directory, 'events.txt')
+            with open(path, 'wb') as file_handle:
+                write_events(EVENTS, file_handle)
+            annotations = load_events(path)
+            self.assertTrue(np.allclose(annotations, EVENTS))
 
     def test_write_and_read_events(self):
-        write_events(EVENTS, pj(DATA_PATH, 'events.txt'))
-        annotations = load_events(pj(DATA_PATH, 'events.txt'))
-        self.assertTrue(np.allclose(annotations, EVENTS))
+        with tempfile.TemporaryDirectory() as directory:
+            path = pj(directory, 'events.txt')
+            write_events(EVENTS, path)
+            annotations = load_events(path)
+            self.assertTrue(np.allclose(annotations, EVENTS))
 
 
 class TestLoadBeatsFunction(unittest.TestCase):
@@ -145,8 +151,11 @@ class TestWriteNotesFunction(unittest.TestCase):
     def test_values(self):
         from tests.test_evaluation_notes import ANNOTATIONS
         header = "MIDI notes for the stereo_sample.[flac|wav] file"
-        write_notes(ANNOTATIONS,
-                    pj(ANNOTATIONS_PATH, 'stereo_sample.notes'), header=header)
+        with tempfile.TemporaryDirectory() as directory:
+            path = pj(directory, 'stereo_sample.notes')
+            write_notes(ANNOTATIONS, path, header=header)
+            annotations = load_notes(path)
+            self.assertTrue(np.allclose(annotations, ANNOTATIONS))
 
 
 class TestLoadOnsetsFunction(unittest.TestCase):
