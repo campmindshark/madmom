@@ -59,8 +59,8 @@ you choose, please make sure that all prerequisites are installed.
 Prerequisites
 -------------
 
-To install the ``madmom`` package, you must have either Python 2.7 or Python
-3.5 or newer and the following packages installed:
+To install the ``madmom`` package, you must have Python 3.11 or newer and the
+following packages installed:
 
 - `numpy <http://www.numpy.org>`_
 - `scipy <http://www.scipy.org>`_
@@ -129,13 +129,25 @@ This is equivalent to these steps::
     cd madmom
     git submodule update --init --remote
 
-Then you can simply install the package in development mode::
+Spectrum's reproducible Windows development build uses CPython 3.11 x64. It
+creates an isolated environment, compiles the native extensions, builds and
+installs the wheel, and runs the tests::
 
-    python setup.py develop --user
+    .\scripts\build.ps1
 
-To run the included tests::
+After that initial build, rerun the full suite or a focused test directly in
+the checked environment with::
 
-    python setup.py pytest
+    .\scripts\test.ps1
+    .\scripts\test.ps1 tests/test_audio_signal.py -q
+
+For other development environments, install ``requirements-dev.txt`` and the
+package into the same supported Python environment, then invoke pytest through
+that interpreter::
+
+    python -m pip install -r requirements-dev.txt
+    python -m pip install -e .
+    python -m pytest -q
 
 Upgrade of existing installations
 ---------------------------------

@@ -35,12 +35,12 @@ repos:
     rev: v3.10.1
     hooks:
       - id: pyupgrade
-        args: [ '--py39-plus', '--keep-runtime-typing']
+        args: [ '--py311-plus', '--keep-runtime-typing']
   - repo: https://github.com/psf/black
     rev: 23.9.0
     hooks:
       - id: black
-        entry: black -t py39 -l 120 -S .
+        entry: black -t py311 -l 120 -S .
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.2.1
     hooks:

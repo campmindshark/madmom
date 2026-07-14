@@ -22,6 +22,7 @@ Bug fixes:
 
 Other changes:
 
+* Require Python 3.11 or newer
 * Volume changes according to `ReplayGain` tags can be applied (#400)
 * Allow selection of channel when loading audio file in mono (#409)
 * Allow reading audio from file objects created in memory (#418)
