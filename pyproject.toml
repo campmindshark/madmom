@@ -6,3 +6,90 @@ requires = [
     "numpy==1.26.4",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "madmom"
+version = "0.17.dev0"
+description = "Python audio signal processing library"
+dynamic = ["readme"]
+requires-python = ">=3.9"
+authors = [
+    { name = "Department of Computational Perception, Johannes Kepler University, Linz, Austria and Austrian Research Institute for Artificial Intelligence (OFAI), Vienna, Austria", email = "madmom-users@googlegroups.com" },
+]
+license = "BSD-3-Clause AND CC-BY-NC-SA-4.0"
+license-files = ["LICENSE"]
+dependencies = [
+    "numpy>=1.26,<2",
+    "scipy>=1.13",
+    "mido>=1.2.6",
+]
+classifiers = [
+    "Development Status :: 3 - Beta",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Environment :: Console",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/CPJKU/madmom"
+Source = "https://github.com/CPJKU/madmom"
+
+[tool.setuptools]
+include-package-data = false
+script-files = [
+    "bin/BarTracker",
+    "bin/BeatDetector",
+    "bin/BeatTracker",
+    "bin/CNNChordRecognition",
+    "bin/CNNOnsetDetector",
+    "bin/ComplexFlux",
+    "bin/CRFBeatDetector",
+    "bin/DBNBeatTracker",
+    "bin/DBNDownBeatTracker",
+    "bin/DCChordRecognition",
+    "bin/evaluate",
+    "bin/GMMPatternTracker",
+    "bin/KeyRecognition",
+    "bin/LogFiltSpecFlux",
+    "bin/MMBeatTracker",
+    "bin/OnsetDetector",
+    "bin/OnsetDetectorLL",
+    "bin/PianoTranscriptor",
+    "bin/PickleProcessor",
+    "bin/SpectralOnsetDetection",
+    "bin/SuperFlux",
+    "bin/SuperFluxNN",
+    "bin/TCNBeatTracker",
+    "bin/TCNTempoDetector",
+    "bin/TempoDetector",
+    "bin/TorchBeatTracker",
+]
+
+[tool.setuptools.packages.find]
+include = ["madmom*"]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+madmom = [
+    "models/LICENSE",
+    "models/README.rst",
+    "models/beats/201[569]/*",
+    "models/chords/*/*",
+    "models/chroma/*/*",
+    "models/downbeats/*/*",
+    "models/key/2018/*",
+    "models/notes/*/*",
+    "models/onsets/*/*",
+    "models/patterns/*/*",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["tests", "docs"]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst" }

@@ -23,7 +23,7 @@ from scipy.ndimage import correlate1d
 cimport numpy as np
 cimport cython
 
-from numpy.math cimport INFINITY
+from libc.math cimport INFINITY
 
 
 def initial_distribution(num_states, interval):
@@ -171,24 +171,27 @@ def viterbi(float [::1] pi, float[::1] transition, float[::1] norm_factor,
 
     """
     # number of states
-    cdef int num_st = activations.shape[0]
+    cdef Py_ssize_t num_st = activations.shape[0]
     # number of transitions
-    cdef int num_tr = transition.shape[0]
+    cdef Py_ssize_t num_tr = transition.shape[0]
     # number of beat variables
-    cdef int num_x = num_st / tau
+    cdef Py_ssize_t num_x = num_st / tau
 
     # current viterbi variables
     cdef float [::1] v_c = np.empty(num_st, dtype=np.float32)
     # previous viterbi variables. will be initialized with prior (first beat)
     cdef float [::1] v_p = np.empty(num_st, dtype=np.float32)
     # back-tracking pointers;
-    cdef long [:, ::1] bps = np.empty((num_x - 1, num_st), dtype=int)
+    cdef np.intp_t [:, ::1] bps = np.empty(
+        (num_x - 1, num_st), dtype=np.intp
+    )
     # back tracked path, a.k.a. path sequence
-    cdef long [::1] path = np.empty(num_x, dtype=int)
+    cdef np.intp_t [::1] path = np.empty(num_x, dtype=np.intp)
 
     # counters etc.
-    cdef int k, i, j, next_state
-    cdef double new_prob, path_prob
+    cdef Py_ssize_t k, i, j, next_state
+    cdef float new_prob
+    cdef double path_prob
 
     # init first beat
     for i in range(num_st):

@@ -23,7 +23,7 @@ cimport numpy as np
 cimport cython
 np.import_array()
 
-from numpy.math cimport INFINITY
+from libc.math cimport INFINITY
 
 
 ctypedef np.uint32_t uint32_t
@@ -504,7 +504,7 @@ class HiddenMarkovModel(object):
 
         # observation model stuff
         om = self.observation_model
-        cdef unsigned int num_observations = len(observations)
+        cdef Py_ssize_t num_observations = len(observations)
         cdef uint32_t [::1] om_pointers = om.pointers
         cdef double [:, ::1] om_densities = om.log_densities(observations)
 
@@ -520,7 +520,8 @@ class HiddenMarkovModel(object):
                                                        num_states),
                                                       dtype=np.uint32)
         # define counters etc.
-        cdef unsigned int state, frame, prev_state, pointer
+        cdef unsigned int state, prev_state, pointer
+        cdef Py_ssize_t frame
         cdef double density, transition_prob
 
         # iterate over all observations
@@ -619,7 +620,7 @@ class HiddenMarkovModel(object):
         om = self.observation_model
         cdef uint32_t [::1] om_pointers = om.pointers
         cdef double [:, ::1] om_densities = om.densities(observations)
-        cdef unsigned int num_observations = len(om_densities)
+        cdef Py_ssize_t num_observations = len(om_densities)
 
         # reset HMM
         if reset:
@@ -631,7 +632,8 @@ class HiddenMarkovModel(object):
                                            dtype=float)
 
         # define counters etc.
-        cdef unsigned int prev_pointer, frame, state
+        cdef unsigned int prev_pointer, state
+        cdef Py_ssize_t frame
         cdef double prob_sum, norm_factor
 
         # iterate over all observations
@@ -694,7 +696,7 @@ class HiddenMarkovModel(object):
 
         # observation model stuff
         om = self.observation_model
-        cdef unsigned int num_observations = len(observations)
+        cdef Py_ssize_t num_observations = len(observations)
         cdef uint32_t [::1] om_pointers = om.pointers
         cdef double [:, ::1] om_densities
 
@@ -704,7 +706,7 @@ class HiddenMarkovModel(object):
 
         # define counters etc.
         cdef unsigned int prev_pointer, state
-        cdef unsigned int obs_start, obs_end, frame, block_sz
+        cdef Py_ssize_t obs_start, obs_end, frame, block_sz
         cdef double prob_sum, norm_factor
 
         # keep track which observations om_densities currently contains
