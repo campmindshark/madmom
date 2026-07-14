@@ -17,8 +17,27 @@ from madmom.io import write_beats
 from madmom.ml.nn import NeuralNetworkEnsemble
 from madmom.processors import IOProcessor, io_arguments
 
-import pyaudio
-import re
+
+def _wasapi_host_api_index():
+    """Return the PyAudio index of the Windows WASAPI host API."""
+    try:
+        import pyaudio
+    except ImportError as exc:
+        raise RuntimeError('--host_api requires PyAudio') from exc
+
+    audio_instance = pyaudio.PyAudio()
+    try:
+        host_api_names = []
+        for idx in range(audio_instance.get_host_api_count()):
+            host_api_info = audio_instance.get_host_api_info_by_index(idx)
+            host_api_names.append(host_api_info['name'])
+            if 'WASAPI' in host_api_info['name'].upper():
+                return idx
+    finally:
+        audio_instance.terminate()
+
+    available = ', '.join(host_api_names) or 'none'
+    raise RuntimeError('WASAPI host API not found (available: %s)' % available)
 
 
 def main():
@@ -79,44 +98,24 @@ def main():
     NeuralNetworkEnsemble.add_arguments(p, nn_files=None)
 
 
-    # ****************************************************************************
-    # *                  CUSTOM BLOCK FOR MINDSHARK/SPECTRUM USAGE               *
-    # *                           (INPUT DEVICE SELECTION)                       *
-    # ****************************************************************************
-    audio_instance = pyaudio.PyAudio()
-
-    # first collect host apis to find the index of the 'WASAPI'
-    try:
-        target_api = r'WASAPI'
-        wasapi_index = None
-        host_api_infos = []
-        for idx in range(audio_instance.get_host_api_count()):
-            host_api_info = audio_instance.get_host_api_info_by_index(idx)
-            host_api_infos.append(host_api_info)
-            if re.search(target_api, host_api_info['name']) is not None:
-                wasapi_index = idx
-                break
-
-        if wasapi_index is None:
-            print("WASAPI API not found in list of host API's...")
-            for info_dict in host_api_infos:
-                print(info_dict['name'])
-            raise Exception("No WASAPI INDEX FOUND!")
-
-
-        p.add_argument('--host_api', action='store_const', dest='host_api',
-                       default=None, const=wasapi_index)
-        p.add_argument('--audio_input', action='store', dest='audio_input',
-                        type=int, help='Which input index we want to use')
-    except:
-        print("WARNING WASAPI NOT FOUND")
-    # ****************************************************************************
-    # *               END CUSTOM BLOCK -- BACK TO STANDARD MADMOM CODE           *
-    # ****************************************************************************
+    # Spectrum can opt into Windows WASAPI for live input. Resolve the host API
+    # lazily so help and file-based processing do not require PyAudio.
+    p.add_argument('--host_api', action='store_true',
+                   help='use the Windows WASAPI host API for live input')
+    p.add_argument('--audio_input', action='store', type=int,
+                   help='input-device index within the selected host API')
 
 
     # parse arguments
     args = p.parse_args()
+
+    if args.host_api:
+        try:
+            args.host_api = _wasapi_host_api_index()
+        except RuntimeError as exc:
+            p.error(str(exc))
+    else:
+        args.host_api = None
 
 
     # set immutable arguments
