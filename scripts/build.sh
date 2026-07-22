@@ -155,6 +155,29 @@ dbn_smoke_test() {
     "$(grep -c '^BEAT:' <<<"$output")"
 }
 
+dbn_pcm_smoke_test() {
+  local interpreter=$1
+  local scripts_directory=$2
+  local tracker="$scripts_directory/DBNBeatTracker"
+  local sample="$madmom_root/tests/data/audio/sample.wav"
+  local output
+  local beat_count
+
+  output=$(
+    ffmpeg -loglevel error -i "$sample" \
+      -f s16le -acodec pcm_s16le -ar 44100 -ac 1 - 2>/dev/null |
+      "$interpreter" "$tracker" --pcm_stdin online 2>&1
+  )
+  beat_count=$(grep -c '^BEAT:' <<<"$output")
+  if [[ "$beat_count" -ne 5 ]]; then
+    printf '%s\n' "$output" >&2
+    printf 'Expected 5 PCM-stdin DBN smoke-test beats; found %s.\n' \
+      "$beat_count" >&2
+    exit 1
+  fi
+  printf 'DBN PCM-stdin smoke test: %s beat events\n' "$beat_count"
+}
+
 require_command realpath
 require_command uv
 require_command gcc
@@ -262,6 +285,7 @@ uv pip check --no-config --python "$wheel_test_python"
   assert_native_imports "$wheel_test_python"
 )
 dbn_smoke_test "$wheel_test_python" "$wheel_test_environment/bin"
+dbn_pcm_smoke_test "$wheel_test_python" "$wheel_test_environment/bin"
 
 if [[ -n "$portable_runtime_directory" ]]; then
   step 'Staging the relocatable Linux Python runtime'
@@ -294,6 +318,7 @@ if [[ -n "$portable_runtime_directory" ]]; then
     assert_native_imports "$runtime_python"
   )
   dbn_smoke_test "$runtime_python" "$portable_runtime_directory/bin"
+  dbn_pcm_smoke_test "$runtime_python" "$portable_runtime_directory/bin"
 
   step 'Verifying the runtime after relocation'
   bash "$script_dir/verify-linux-runtime.sh" \

@@ -858,7 +858,7 @@ def process_online(processor, infile, outfile, **kwargs):
     results expected.
 
     """
-    from madmom.audio.signal import Stream, FramedSignal
+    from madmom.audio.signal import Stream, RawPcmStream, FramedSignal
     # set default values
     kwargs['sample_rate'] = kwargs.get('sample_rate', 44100)
     kwargs['num_channels'] = kwargs.get('num_channels', 1)
@@ -873,10 +873,15 @@ def process_online(processor, infile, outfile, **kwargs):
 
     # if no input file is given, create a Stream with the given arguments
     if infile is None:
-        # open a stream and start if not running already
-        stream = Stream(**kwargs)
-        if not stream.is_running():
-            stream.start()
+        if kwargs.get('pcm_stdin'):
+            # The embedding application already owns the audio device and
+            # writes mono/stereo signed-16-bit little-endian PCM to stdin.
+            stream = RawPcmStream(sys.stdin.buffer, **kwargs)
+        else:
+            # open a stream and start if not running already
+            stream = Stream(**kwargs)
+            if not stream.is_running():
+                stream.start()
     # use the input file
     else:
         # set parameters for opening the file

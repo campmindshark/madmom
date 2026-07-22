@@ -65,6 +65,21 @@ if [[ "$beat_count" -ne 8 ]]; then
   exit 1
 fi
 
+pcm_output=$(
+  ffmpeg -loglevel error -i "$sample" \
+    -f s16le -acodec pcm_s16le -ar 44100 -ac 1 - 2>/dev/null |
+    "$runtime_python" \
+      "$temp_root/runtime/bin/DBNBeatTracker" \
+      --pcm_stdin online 2>&1
+)
+pcm_beat_count=$(grep -c '^BEAT:' <<<"$pcm_output")
+if [[ "$pcm_beat_count" -ne 5 ]]; then
+  printf '%s\n' "$pcm_output" >&2
+  printf 'Expected 5 PCM-stdin DBN smoke-test beats; found %s.\n' \
+    "$pcm_beat_count" >&2
+  exit 1
+fi
+
 pyaudio_module=$(
   "$runtime_python" -c \
     'import pyaudio; print(pyaudio._portaudio.__file__)'
@@ -75,4 +90,5 @@ if ! ldd "$pyaudio_module" | grep -q 'libportaudio\.so\.2'; then
   exit 1
 fi
 
-printf 'Relocated Linux runtime: OK (%s beat events)\n' "$beat_count"
+printf 'Relocated Linux runtime: OK (%s file beats, %s PCM beats)\n' \
+  "$beat_count" "$pcm_beat_count"

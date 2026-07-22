@@ -1538,3 +1538,83 @@ class Stream(object):
         if self.signal.num_channels != 1:
             shape += (self.signal.num_channels,)
         return shape
+
+
+class RawPcmStream(object):
+    """
+    Frame a headerless signed-16-bit little-endian PCM byte stream.
+
+    This stream is intended for applications which already own the audio
+    device and need to feed the same captured signal into madmom. It mirrors
+    :class:`Stream`'s online framing without opening a second PyAudio device.
+
+    Parameters
+    ----------
+    infile : file-like object
+        Binary source with a ``read(size)`` method.
+    sample_rate : int
+        Sample rate of the PCM source [Hz].
+    num_channels : int
+        Number of interleaved source channels. Multi-channel input is mixed to
+        mono before framing.
+    frame_size : int
+        Number of mono samples retained in each processing frame.
+    hop_size : int
+        Number of new mono samples read for each frame.
+    fps : float, optional
+        If set, derive ``hop_size`` from ``sample_rate / fps``.
+    """
+
+    def __init__(self, infile, sample_rate=SAMPLE_RATE, num_channels=1,
+                 frame_size=FRAME_SIZE, hop_size=HOP_SIZE, fps=FPS, **kwargs):
+        # pylint: disable=unused-argument
+        if infile is None or not hasattr(infile, 'read'):
+            raise ValueError('a binary PCM input stream is required')
+        if sample_rate <= 0:
+            raise ValueError('sample_rate must be positive')
+        if num_channels is None or num_channels <= 0:
+            raise ValueError('num_channels must be positive')
+        self.infile = infile
+        self.sample_rate = int(sample_rate)
+        self.num_channels = int(num_channels)
+        self.frame_size = int(frame_size)
+        if fps:
+            hop_size = self.sample_rate / float(fps)
+        if int(hop_size) != hop_size or hop_size <= 0:
+            raise ValueError(
+                'only positive integer `hop_size` supported, not %s' %
+                hop_size)
+        self.hop_size = int(hop_size)
+        self.buffer = BufferProcessor(self.frame_size)
+        self.frame_idx = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        byte_count = self.hop_size * self.num_channels * 2
+        chunks = []
+        remaining = byte_count
+        while remaining:
+            chunk = self.infile.read(remaining)
+            if not chunk:
+                raise StopIteration
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        data = np.frombuffer(b''.join(chunks), dtype='<i2')
+        if self.num_channels > 1:
+            data = data.reshape((-1, self.num_channels)).astype(np.float32)
+            data = np.mean(data, axis=1)
+        else:
+            data = data.astype(np.float32)
+        # Match PyAudio's float stream range. Dividing by 32768 also preserves
+        # the exact full-scale negative endpoint without clipping.
+        data /= 32768.
+        data = self.buffer(data)
+        start = self.frame_idx * float(self.hop_size) / self.sample_rate
+        signal = Signal(data[-self.frame_size:], sample_rate=self.sample_rate,
+                        dtype=np.float32, num_channels=1, start=start)
+        self.frame_idx += 1
+        return signal
+
+    next = __next__

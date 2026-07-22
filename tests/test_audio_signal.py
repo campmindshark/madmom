@@ -8,6 +8,8 @@ This file contains tests for the madmom.audio.signal module.
 from __future__ import absolute_import, division, print_function
 
 import os
+import io
+import struct
 import sys
 import tempfile
 import unittest
@@ -21,6 +23,30 @@ sample_file = pj(AUDIO_PATH, 'sample.wav')
 sample_file_22k = pj(AUDIO_PATH, 'sample_22050.wav')
 stereo_sample_file = pj(AUDIO_PATH, 'stereo_sample.wav')
 tmp_file = tempfile.NamedTemporaryFile(delete=False).name
+
+
+class TestRawPcmStream(unittest.TestCase):
+
+    def test_mono_pcm_is_normalized_and_framed(self):
+        raw = struct.pack('<hhhh', -32768, -16384, 0, 32767)
+        stream = RawPcmStream(io.BytesIO(raw), sample_rate=4,
+                              num_channels=1, frame_size=4, hop_size=2)
+        first = next(stream).copy()
+        second = next(stream)
+        self.assertTrue(np.allclose(first, [0., 0., -1., -0.5]))
+        self.assertTrue(np.allclose(
+            second, [-1., -0.5, 0., 32767. / 32768.]))
+        self.assertEqual(first.start, 0.)
+        self.assertEqual(second.start, 0.5)
+        with self.assertRaises(StopIteration):
+            next(stream)
+
+    def test_stereo_pcm_is_mixed_to_mono(self):
+        raw = struct.pack('<hhhh', 32767, -32767, -32768, -32768)
+        stream = RawPcmStream(io.BytesIO(raw), sample_rate=2,
+                              num_channels=2, frame_size=2, hop_size=2)
+        frame = next(stream)
+        self.assertTrue(np.allclose(frame, [0., -1.]))
 
 
 # test signal functions

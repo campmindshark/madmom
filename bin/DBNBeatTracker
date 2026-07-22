@@ -16,7 +16,7 @@ from madmom.features import (ActivationsProcessor, DBNBeatTrackingProcessor,
                              RNNBeatProcessor)
 from madmom.io import write_beats
 from madmom.ml.nn import NeuralNetworkEnsemble
-from madmom.processors import IOProcessor, io_arguments
+from madmom.processors import IOProcessor, io_arguments, process_online
 
 
 def main():
@@ -87,6 +87,9 @@ def main():
                         'ALSA, JACK, PulseAudio, or Core Audio)')
     p.add_argument('--audio_input', action='store', type=int,
                    help='input-device index within the selected host API')
+    p.add_argument('--pcm_stdin', action='store_true',
+                   help='read headerless signed-16-bit little-endian PCM from '
+                        'stdin instead of opening a PyAudio input')
 
 
     # parse arguments
@@ -95,6 +98,11 @@ def main():
     host_api_name = args.host_api_name
     if host_api_name is None and args.host_api:
         host_api_name = 'auto'
+    if args.pcm_stdin and host_api_name is not None:
+        p.error('--pcm_stdin cannot be combined with a PortAudio host API')
+    if args.pcm_stdin and (
+            args.func is not process_online or args.infile is not None):
+        p.error('--pcm_stdin requires online mode without an input file')
     if host_api_name is not None:
         try:
             args.host_api = resolve_host_api_index(host_api_name)
@@ -125,11 +133,12 @@ def main():
         out_processor = ActivationsProcessor(mode='w', **vars(args))
     else:
         # track the beats with a DBN and output them
+        live_input = args.host_api is not None or args.pcm_stdin
         beat_processor = DBNBeatTrackingProcessor(
-            **vars(args), absolute_time=args.host_api is not None
+            **vars(args), absolute_time=live_input
         )
         beat_writer = write_beats
-        if args.host_api is not None:
+        if live_input:
             beat_writer = partial(write_beats, prefix='BEAT:')
         out_processor = [beat_processor, beat_writer]
 
