@@ -11,33 +11,12 @@ import argparse
 from functools import partial
 
 from madmom.audio import SignalProcessor
+from madmom.audio.host_api import resolve_host_api_index
 from madmom.features import (ActivationsProcessor, DBNBeatTrackingProcessor,
                              RNNBeatProcessor)
 from madmom.io import write_beats
 from madmom.ml.nn import NeuralNetworkEnsemble
 from madmom.processors import IOProcessor, io_arguments
-
-
-def _wasapi_host_api_index():
-    """Return the PyAudio index of the Windows WASAPI host API."""
-    try:
-        import pyaudio
-    except ImportError as exc:
-        raise RuntimeError('--host_api requires PyAudio') from exc
-
-    audio_instance = pyaudio.PyAudio()
-    try:
-        host_api_names = []
-        for idx in range(audio_instance.get_host_api_count()):
-            host_api_info = audio_instance.get_host_api_info_by_index(idx)
-            host_api_names.append(host_api_info['name'])
-            if 'WASAPI' in host_api_info['name'].upper():
-                return idx
-    finally:
-        audio_instance.terminate()
-
-    available = ', '.join(host_api_names) or 'none'
-    raise RuntimeError('WASAPI host API not found (available: %s)' % available)
 
 
 def main():
@@ -98,10 +77,14 @@ def main():
     NeuralNetworkEnsemble.add_arguments(p, nn_files=None)
 
 
-    # Spectrum can opt into Windows WASAPI for live input. Resolve the host API
-    # lazily so help and file-based processing do not require PyAudio.
+    # Keep Spectrum's original boolean switch so an existing virtual
+    # environment remains compatible with a newly built .NET frontend. New
+    # runtimes can optionally select a PortAudio backend by name.
     p.add_argument('--host_api', action='store_true',
-                   help='use the Windows WASAPI host API for live input')
+                   help='use the automatic platform host API for live input')
+    p.add_argument('--host_api_name', metavar='NAME',
+                   help='PortAudio host API for live input (e.g. WASAPI, '
+                        'ALSA, JACK, PulseAudio, or Core Audio)')
     p.add_argument('--audio_input', action='store', type=int,
                    help='input-device index within the selected host API')
 
@@ -109,9 +92,12 @@ def main():
     # parse arguments
     args = p.parse_args()
 
-    if args.host_api:
+    host_api_name = args.host_api_name
+    if host_api_name is None and args.host_api:
+        host_api_name = 'auto'
+    if host_api_name is not None:
         try:
-            args.host_api = _wasapi_host_api_index()
+            args.host_api = resolve_host_api_index(host_api_name)
         except RuntimeError as exc:
             p.error(str(exc))
     else:
