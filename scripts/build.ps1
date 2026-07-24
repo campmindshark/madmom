@@ -152,7 +152,9 @@ function Enter-MsvcEnvironment {
 function Invoke-DbnSmokeTest {
   param(
     [string]$Interpreter,
-    [string]$ScriptsDirectory
+    [string]$ScriptsDirectory,
+    [ValidateSet("single", "online")]
+    [string]$ProcessingMode = "single"
   )
 
   $tracker = Join-Path $ScriptsDirectory "DBNBeatTracker"
@@ -161,7 +163,12 @@ function Invoke-DbnSmokeTest {
     throw "The installed wheel did not provide DBNBeatTracker: $tracker"
   }
 
-  $output = & $Interpreter $tracker "--host_api" "single" $sample 2>&1
+  $output = & $Interpreter `
+    "-B" `
+    $tracker `
+    "--host_api" `
+    $ProcessingMode `
+    $sample 2>&1
   if ($LASTEXITCODE -ne 0) {
     $output | ForEach-Object { Write-Host $_ }
     throw "DBNBeatTracker smoke test failed with exit code $LASTEXITCODE."
@@ -172,6 +179,234 @@ function Invoke-DbnSmokeTest {
     throw "DBNBeatTracker completed without emitting any BEAT: events."
   }
   Write-Host "DBN smoke test: $($beatLines.Count) beat events"
+}
+
+function Remove-PortableRuntimeItem {
+  param(
+    [string]$RuntimeDirectory,
+    [string]$Path
+  )
+
+  $runtimeRoot = [System.IO.Path]::GetFullPath(
+    $RuntimeDirectory
+  ).TrimEnd('\')
+  $fullPath = [System.IO.Path]::GetFullPath($Path)
+  $runtimePrefix = $runtimeRoot + '\'
+  if (-not $fullPath.StartsWith(
+      $runtimePrefix,
+      [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw "Refusing to prune a path outside the portable runtime: $fullPath"
+  }
+
+  if (Test-Path -LiteralPath $fullPath) {
+    Remove-Item -LiteralPath $fullPath -Recurse -Force
+  }
+}
+
+function Remove-EmptyPortableDirectories {
+  param(
+    [string]$RuntimeDirectory,
+    [string]$Root
+  )
+
+  $directories = @(
+    Get-ChildItem -LiteralPath $Root -Directory -Recurse -Force
+  ) | Sort-Object { $_.FullName.Length } -Descending
+  foreach ($directory in $directories) {
+    if (@(Get-ChildItem -LiteralPath $directory.FullName -Force).Count -eq 0) {
+      Remove-PortableRuntimeItem `
+        -RuntimeDirectory $RuntimeDirectory `
+        -Path $directory.FullName
+    }
+  }
+}
+
+function Remove-PortableRuntimeExtras {
+  param([string]$RuntimeDirectory)
+
+  Assert-WorkspacePath $RuntimeDirectory
+  $runtimeRoot = [System.IO.Path]::GetFullPath($RuntimeDirectory)
+  $sitePackages = Join-Path $runtimeRoot "Lib\site-packages"
+  $modelsRoot = Join-Path $sitePackages "madmom\models"
+  $scriptsRoot = Join-Path $runtimeRoot "Scripts"
+  $requiredPaths = @(
+    (Join-Path $runtimeRoot "python.exe"),
+    (Join-Path $sitePackages "numpy"),
+    (Join-Path $sitePackages "scipy"),
+    (Join-Path $modelsRoot "__init__.py"),
+    (Join-Path $modelsRoot "LICENSE"),
+    (Join-Path $modelsRoot "README.rst"),
+    (Join-Path $scriptsRoot "DBNBeatTracker")
+  )
+  $allowedModelFiles = @(
+    "__init__.py",
+    "LICENSE",
+    "README.rst"
+  )
+  foreach ($index in 1..8) {
+    $relativeModelPath = "beats\2016\beats_lstm_${index}.pkl"
+    $allowedModelFiles += $relativeModelPath
+    $requiredPaths += Join-Path $modelsRoot $relativeModelPath
+  }
+  foreach ($requiredPath in $requiredPaths) {
+    if (-not (Test-Path -LiteralPath $requiredPath)) {
+      throw "Cannot prune an incomplete portable runtime; missing: $requiredPath"
+    }
+  }
+
+  $beforeBytes = (
+    Get-ChildItem -LiteralPath $runtimeRoot -Recurse -File -Force |
+      Measure-Object -Property Length -Sum
+  ).Sum
+
+  # Installation and pip validation are already complete. Remove build and
+  # packaging tools from this private runtime, while retaining metadata for
+  # every package the application still ships.
+  $runtimeExtras = @(
+    "include",
+    "libs",
+    "tcl",
+    "Lib\ensurepip",
+    "Lib\idlelib",
+    "Lib\tkinter",
+    "Lib\turtledemo",
+    "Lib\turtle.py",
+    "DLLs\_tkinter.pyd",
+    "DLLs\tcl86t.dll",
+    "DLLs\tk86t.dll"
+  )
+  foreach ($relativePath in $runtimeExtras) {
+    Remove-PortableRuntimeItem `
+      -RuntimeDirectory $runtimeRoot `
+      -Path (Join-Path $runtimeRoot $relativePath)
+  }
+
+  $packagingToolPatterns = @(
+    "_distutils_hack",
+    "distutils-precedence.pth",
+    "pip",
+    "pip-*.dist-info",
+    "setuptools",
+    "setuptools-*.dist-info"
+  )
+  $sitePackageEntries = @(
+    Get-ChildItem -LiteralPath $sitePackages -Force
+  )
+  foreach ($entry in $sitePackageEntries) {
+    if ($packagingToolPatterns | Where-Object { $entry.Name -like $_ }) {
+      Remove-PortableRuntimeItem `
+        -RuntimeDirectory $runtimeRoot `
+        -Path $entry.FullName
+    }
+  }
+
+  # Only DBNBeatTracker is launched by Spectrum.
+  Get-ChildItem -LiteralPath $scriptsRoot -Force |
+    Where-Object { $_.Name -ne "DBNBeatTracker" } |
+    ForEach-Object {
+      Remove-PortableRuntimeItem `
+        -RuntimeDirectory $runtimeRoot `
+        -Path $_.FullName
+    }
+
+  # NumPy's public numpy.testing package is intentionally retained. Only
+  # directories literally named "tests" inside NumPy and SciPy are removed.
+  foreach ($packageName in @("numpy", "scipy")) {
+    $packageRoot = Join-Path $sitePackages $packageName
+    $testDirectories = @(
+      Get-ChildItem `
+        -LiteralPath $packageRoot `
+        -Directory `
+        -Recurse `
+        -Filter "tests" `
+        -Force
+    ) | Sort-Object { $_.FullName.Length } -Descending
+    foreach ($testDirectory in $testDirectories) {
+      Remove-PortableRuntimeItem `
+        -RuntimeDirectory $runtimeRoot `
+        -Path $testDirectory.FullName
+    }
+  }
+
+  # Keep the model package, its licensing files, and exactly the eight online
+  # beat models selected by RNNBeatProcessor(online=True).
+  Get-ChildItem -LiteralPath $modelsRoot -Recurse -File -Force |
+    ForEach-Object {
+      $relativePath = $_.FullName.Substring(
+        $modelsRoot.Length
+      ).TrimStart('\')
+      if ($allowedModelFiles -notcontains $relativePath) {
+        Remove-PortableRuntimeItem `
+          -RuntimeDirectory $runtimeRoot `
+          -Path $_.FullName
+      }
+    }
+  Remove-EmptyPortableDirectories `
+    -RuntimeDirectory $runtimeRoot `
+    -Root $modelsRoot
+
+  $bytecodeDirectories = @(
+    Get-ChildItem `
+      -LiteralPath $runtimeRoot `
+      -Directory `
+      -Recurse `
+      -Filter "__pycache__" `
+      -Force
+  ) | Sort-Object { $_.FullName.Length } -Descending
+  foreach ($bytecodeDirectory in $bytecodeDirectories) {
+    Remove-PortableRuntimeItem `
+      -RuntimeDirectory $runtimeRoot `
+      -Path $bytecodeDirectory.FullName
+  }
+
+  $requiredMetadataPatterns = @(
+    "madmom-*.dist-info",
+    "mido-*.dist-info",
+    "numpy-*.dist-info",
+    "packaging-*.dist-info",
+    "pyaudio-*.dist-info",
+    "scipy-*.dist-info"
+  )
+  foreach ($pattern in $requiredMetadataPatterns) {
+    if (@(Get-ChildItem -LiteralPath $sitePackages -Filter $pattern).Count -ne 1) {
+      throw "Portable runtime metadata is missing or ambiguous: $pattern"
+    }
+  }
+
+  $remainingScripts = @(Get-ChildItem -LiteralPath $scriptsRoot -Force)
+  if (
+    $remainingScripts.Count -ne 1 -or
+    $remainingScripts[0].Name -ne "DBNBeatTracker"
+  ) {
+    throw "Portable runtime pruning left unexpected command-line scripts."
+  }
+
+  $remainingModelFiles = @(
+    Get-ChildItem -LiteralPath $modelsRoot -Recurse -File -Force |
+      ForEach-Object {
+        $_.FullName.Substring($modelsRoot.Length).TrimStart('\')
+      } |
+      Sort-Object
+  )
+  $modelDifference = @(
+    Compare-Object `
+      -ReferenceObject @($allowedModelFiles | Sort-Object) `
+      -DifferenceObject $remainingModelFiles
+  )
+  if ($modelDifference.Count -ne 0) {
+    throw "Portable runtime pruning left an unexpected Madmom model set."
+  }
+
+  $afterBytes = (
+    Get-ChildItem -LiteralPath $runtimeRoot -Recurse -File -Force |
+      Measure-Object -Property Length -Sum
+  ).Sum
+  Write-Host (
+    "Portable runtime pruning: {0:N1} MiB -> {1:N1} MiB" -f
+      ($beforeBytes / 1MB),
+      ($afterBytes / 1MB)
+  )
 }
 
 $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
@@ -314,7 +549,8 @@ try {
 }
 Invoke-DbnSmokeTest `
   -Interpreter $wheelTestPython `
-  -ScriptsDirectory (Join-Path $wheelTestEnvironment "Scripts")
+  -ScriptsDirectory (Join-Path $wheelTestEnvironment "Scripts") `
+  -ProcessingMode "single"
 
 if ($PortableRuntimeDirectory) {
   Write-Step "Staging the portable Python runtime"
@@ -343,18 +579,35 @@ if ($PortableRuntimeDirectory) {
     "pip", "check", "--no-config", "--python", $runtimePython
   )
 
+  Write-Step "Pruning the application-specific portable Python runtime"
+  Remove-PortableRuntimeExtras -RuntimeDirectory $PortableRuntimeDirectory
+
+  Write-Step "Testing the pruned portable Python runtime"
   Push-Location $PortableRuntimeDirectory
   try {
     Invoke-Checked -FilePath $runtimePython -Arguments @(
+      "-B",
       "-c",
-      "import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; print('portable runtime:', madmom.__version__)"
+      "import importlib.metadata as metadata; import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert metadata.version('madmom') == madmom.__version__; print('portable runtime:', madmom.__version__)"
     )
   } finally {
     Pop-Location
   }
   Invoke-DbnSmokeTest `
     -Interpreter $runtimePython `
-    -ScriptsDirectory (Join-Path $PortableRuntimeDirectory "Scripts")
+    -ScriptsDirectory (Join-Path $PortableRuntimeDirectory "Scripts") `
+    -ProcessingMode "online"
+
+  if (@(
+      Get-ChildItem `
+        -LiteralPath $PortableRuntimeDirectory `
+        -Directory `
+        -Recurse `
+        -Filter "__pycache__" `
+        -Force
+    ).Count -ne 0) {
+    throw "The packaged runtime smoke test unexpectedly created bytecode caches."
+  }
 }
 
 Write-Host "`nPython build complete." -ForegroundColor Green
