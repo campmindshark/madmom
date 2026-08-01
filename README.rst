@@ -131,7 +131,10 @@ This is equivalent to these steps::
 
 Spectrum's reproducible Windows development build uses CPython 3.11 x64. It
 creates an isolated environment, compiles the native extensions, builds and
-installs the wheel, and runs the tests::
+installs the wheel, and runs the tests. Install FFmpeg first so that both
+``ffmpeg`` and ``ffprobe`` are available on ``PATH``::
+
+    winget install --id Gyan.FFmpeg -e
 
     .\scripts\build.ps1
 

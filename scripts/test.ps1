@@ -50,7 +50,7 @@ if ($PytestArguments.Count -eq 0) {
 
 Push-Location $MadmomRoot
 try {
-  & $EnvironmentPython -c $Preflight
+  $Preflight | & $EnvironmentPython -
   if ($LASTEXITCODE -ne 0) {
     $Message = @"
 The Madmom test environment failed its preflight check.

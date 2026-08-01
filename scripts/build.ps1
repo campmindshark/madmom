@@ -415,6 +415,22 @@ if (-not $uvCommand) {
 }
 $uv = $uvCommand.Source
 
+$missingAudioCommands = @(
+  @(
+    "ffmpeg",
+    "ffprobe"
+  ) | Where-Object {
+    -not (Get-Command $_ -ErrorAction SilentlyContinue)
+  }
+)
+if ($missingAudioCommands.Count -ne 0) {
+  throw (
+    "FFmpeg is required to build and test Madmom; missing command(s): " +
+    "$($missingAudioCommands -join ', '). Install it with: " +
+    "winget install --id Gyan.FFmpeg -e"
+  )
+}
+
 $uvCache = Join-Path $MadmomRoot ".uv-cache"
 New-Item -ItemType Directory -Path $uvCache -Force | Out-Null
 $env:UV_CACHE_DIR = $uvCache
