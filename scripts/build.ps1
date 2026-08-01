@@ -166,7 +166,8 @@ function Invoke-DbnSmokeTest {
   $output = & $Interpreter `
     "-B" `
     $tracker `
-    "--host_api" `
+    "--host_api_name" `
+    "auto" `
     $ProcessingMode `
     $sample 2>&1
   if ($LASTEXITCODE -ne 0) {

@@ -56,7 +56,7 @@ esac
 output=$(
   "$runtime_python" \
     "$temp_root/runtime/bin/DBNBeatTracker" \
-    --host_api single "$sample" 2>&1
+    --host_api_name auto single "$sample" 2>&1
 )
 beat_count=$(grep -c '^BEAT:' <<<"$output")
 if [[ "$beat_count" -ne 8 ]]; then

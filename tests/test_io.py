@@ -58,14 +58,6 @@ class TestWriteEventsFunction(unittest.TestCase):
             annotations = load_events(path)
             self.assertTrue(np.allclose(annotations, EVENTS))
 
-    def test_write_and_read_events(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = pj(directory, 'events.txt')
-            write_events(EVENTS, path)
-            annotations = load_events(path)
-            self.assertTrue(np.allclose(annotations, EVENTS))
-
-
 class TestLoadBeatsFunction(unittest.TestCase):
 
     def test_load_beats_from_file(self):

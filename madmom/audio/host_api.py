@@ -27,7 +27,7 @@ def resolve_host_api_index(requested_name, audio_instance=None,
         try:
             import pyaudio
         except ImportError as exc:
-            raise RuntimeError('--host_api requires PyAudio') from exc
+            raise RuntimeError('--host_api_name requires PyAudio') from exc
         audio_instance = pyaudio.PyAudio()
 
     try:

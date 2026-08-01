@@ -144,7 +144,7 @@ dbn_smoke_test() {
     exit 1
   fi
   output=$(
-    "$interpreter" "$tracker" --host_api single "$sample" 2>&1
+    "$interpreter" "$tracker" --host_api_name auto single "$sample" 2>&1
   )
   if ! grep -q '^BEAT:' <<<"$output"; then
     printf '%s\n' "$output" >&2

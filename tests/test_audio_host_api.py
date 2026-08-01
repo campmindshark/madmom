@@ -3,8 +3,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import argparse
 import importlib.util
 import pathlib
+import runpy
 import unittest
 
 
@@ -15,6 +17,7 @@ SPEC = importlib.util.spec_from_file_location(
 HOST_API = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(HOST_API)
 resolve_host_api_index = HOST_API.resolve_host_api_index
+TRACKER_PATH = pathlib.Path(__file__).parent.parent / 'bin' / 'DBNBeatTracker'
 
 
 class FakePyAudio(object):
@@ -35,6 +38,19 @@ class FakePyAudio(object):
 
 
 class HostApiTests(unittest.TestCase):
+
+    def test_supported_tracker_invocation_uses_named_host_api(self):
+        tracker = runpy.run_path(str(TRACKER_PATH))
+        parser = argparse.ArgumentParser(allow_abbrev=False)
+        tracker['add_spectrum_arguments'](parser)
+
+        args, remaining = parser.parse_known_args([
+            '--host_api_name', 'auto', '--audio_input=7', 'online'])
+        self.assertEqual(args.host_api_name, 'auto')
+        self.assertEqual(args.audio_input, 7)
+        self.assertEqual(remaining, ['online'])
+        with self.assertRaises(SystemExit):
+            parser.parse_args(['--host_api'])
 
     def test_explicit_host_api_name_is_case_insensitive(self):
         audio = FakePyAudio(['MME', 'Windows WASAPI'])
