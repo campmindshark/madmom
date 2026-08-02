@@ -57,13 +57,7 @@ class Processor(object):
         from .io import open_file
         # instantiate a new Processor and return it
         with open_file(infile, 'rb') as f:
-            # Python 2 and 3 behave differently
-            try:
-                # Python 3
-                obj = pickle.load(f, encoding='latin1')
-            except TypeError:
-                # Python 2 doesn't have/need the encoding
-                obj = pickle.load(f)
+            obj = pickle.load(f, encoding='latin1')
         return obj
 
     def dump(self, outfile):
@@ -83,9 +77,8 @@ class Processor(object):
         import pickle
         from .io import open_file
         # dump the Processor to the given file
-        # Note: for Python 2 / 3 compatibility reason use protocol 2
         with open_file(outfile, 'wb') as f:
-            pickle.dump(self, f, protocol=2)
+            pickle.dump(self, f)
 
     def process(self, data, **kwargs):
         """

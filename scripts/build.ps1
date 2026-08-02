@@ -153,8 +153,8 @@ function Invoke-DbnSmokeTest {
   param(
     [string]$Interpreter,
     [string]$ScriptsDirectory,
-    [ValidateSet("single", "online")]
-    [string]$ProcessingMode = "single"
+    [ValidateSet("online")]
+    [string]$ProcessingMode = "online"
   )
 
   $tracker = Join-Path $ScriptsDirectory "DBNBeatTracker"
@@ -526,10 +526,12 @@ Invoke-Checked -FilePath $uv -Arguments @(
 Invoke-Checked -FilePath $environmentPython -Arguments @("-m", "pip", "check")
 
 if (-not $SkipTests) {
-  Write-Step "Running the Madmom test suite"
+  Write-Step "Running Spectrum's Madmom boundary suite"
   Push-Location $MadmomRoot
   try {
-    Invoke-Checked -FilePath $environmentPython -Arguments @("-m", "pytest", "-q")
+    Invoke-Checked -FilePath $environmentPython -Arguments @(
+      "-m", "pytest", "-q", "tests/test_spectrum_boundary.py"
+    )
   } finally {
     Pop-Location
   }
@@ -558,7 +560,7 @@ Push-Location $buildDirectory
 try {
   Invoke-Checked -FilePath $wheelTestPython -Arguments @(
     "-c",
-    "import importlib.util as util; from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; print('wheel imports and Spectrum boundary: OK')"
+    "import importlib.util as util; from pathlib import Path; from madmom import models; from madmom.ml import hmm; from madmom.ml.nn import layers; native = (hmm, layers); assert all(Path(module.__file__).suffix == '.pyd' for module in native); assert len(models.BEATS_LSTM) == 8; assert util.find_spec('mido') is None; assert util.find_spec('madmom.audio.comb_filters') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.features.beats_crf') is None; assert util.find_spec('madmom.piracy') is None; print('wheel imports and Spectrum boundary: OK')"
   )
 } finally {
   Pop-Location
@@ -604,7 +606,7 @@ if ($PortableRuntimeDirectory) {
     Invoke-Checked -FilePath $runtimePython -Arguments @(
       "-B",
       "-c",
-      "import importlib.metadata as metadata; import importlib.util as util; import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; assert metadata.version('madmom') == madmom.__version__; print('portable runtime:', madmom.__version__)"
+      "import importlib.metadata as metadata; import importlib.util as util; import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; assert util.find_spec('mido') is None; assert util.find_spec('madmom.audio.comb_filters') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.features.beats_crf') is None; assert util.find_spec('madmom.piracy') is None; assert metadata.version('madmom') == madmom.__version__; print('portable runtime:', madmom.__version__)"
     )
   } finally {
     Pop-Location

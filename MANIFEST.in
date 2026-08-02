@@ -1,5 +1,3 @@
-prune docs
-prune tests
-include CHANGES.rst
-recursive-include madmom *.pyx
+include LICENSE README.rst
+recursive-include madmom *.pyx *.pxd
 recursive-exclude madmom *.c

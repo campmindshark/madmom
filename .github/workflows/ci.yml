@@ -1,40 +1,33 @@
-name: Python package
+name: Spectrum beat-tracker runtime
 
-on: [push]
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'  # caching pip dependencies
-      - name: Install dependencies
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install native build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ffmpeg libfftw3-dev portaudio19-dev
-          python -m pip install --upgrade pip
-          pip install pytest pytest-cov ruff
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#      - name: Lint with ruff
-#        run: |
-#          # stop the build if there are Python syntax errors or undefined names
-#          ruff --format=github --select=E9,F63,F7,F82 --target-version=py311 .
-#          # default set of ruff rules with GitHub Annotations
-#          ruff --format=github --target-version=py311 .
-      - name: Setup madmom
-        run: |
-          git submodule update --init --remote
-          pip install -e .
-      - name: Test with pytest
-        run: |
-          pytest --cov --doctest-ignore-import-errors madmom tests
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential ffmpeg portaudio19-dev
+          python -m pip install uv==0.11.26
+
+      - name: Build wheel and verify Spectrum boundary
+        run: >-
+          bash scripts/build.sh
+          --python "$(command -v python)"

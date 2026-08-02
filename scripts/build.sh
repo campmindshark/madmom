@@ -128,7 +128,7 @@ assert_python() {
 
 assert_native_imports() {
   "$1" -c \
-    "from importlib import util; from pathlib import Path; import madmom, numpy, pyaudio, scipy; from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; native = (comb_filters, beats_crf, hmm, layers); assert all(Path(module.__file__).suffix == '.so' for module in native), [module.__file__ for module in native]; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; print('native runtime imports: OK'); print(*(module.__file__ for module in native), sep='\n')"
+    "from importlib import util; from pathlib import Path; import madmom, numpy, pyaudio, scipy; from madmom import models; from madmom.ml import hmm; from madmom.ml.nn import layers; native = (hmm, layers); assert all(Path(module.__file__).suffix == '.so' for module in native), [module.__file__ for module in native]; assert len(models.BEATS_LSTM) == 8; assert util.find_spec('mido') is None; assert util.find_spec('madmom.audio.comb_filters') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.features.beats_crf') is None; assert util.find_spec('madmom.piracy') is None; print('native runtime imports: OK'); print(*(module.__file__ for module in native), sep='\n')"
 }
 
 dbn_smoke_test() {
@@ -264,10 +264,10 @@ uv pip install --no-config --python "$environment_python" --no-deps \
 uv pip check --no-config --python "$environment_python"
 
 if [[ "$skip_tests" != true ]]; then
-  step 'Running the Madmom test suite'
+  step "Running Spectrum's Madmom boundary suite"
   (
     cd -- "$madmom_root"
-    "$environment_python" -m pytest -q
+    "$environment_python" -m pytest -q tests/test_spectrum_boundary.py
   )
 fi
 

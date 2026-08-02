@@ -23,16 +23,13 @@ and iterable. This way they can be used identically to numpy arrays.
 
 from __future__ import absolute_import, division, print_function
 
-# import submodules and classes used often
-from .chroma import DeepChromaProcessor
-from .signal import (FramedSignal, FramedSignalProcessor, Signal,
-                     SignalProcessor, )
+# Export only the signal and spectral processors used by Spectrum's online
+# beat-tracking pipeline.
+from .signal import FramedSignal, FramedSignalProcessor, Signal, SignalProcessor
 from .spectrogram import (FilteredSpectrogram, FilteredSpectrogramProcessor,
-                          LogarithmicFilteredSpectrogram,
-                          LogarithmicFilteredSpectrogramProcessor,
                           LogarithmicSpectrogram,
                           LogarithmicSpectrogramProcessor,
-                          MultiBandSpectrogramProcessor, Spectrogram,
+                          Spectrogram,
                           SpectrogramDifference,
                           SpectrogramDifferenceProcessor,
                           SpectrogramProcessor, )

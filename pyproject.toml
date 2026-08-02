@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "madmom"
 version = "0.17.dev0"
-description = "Python audio signal processing library"
+description = "Spectrum's private online RNN/DBN beat tracker"
 dynamic = ["readme"]
 requires-python = ">=3.11"
 authors = [
@@ -43,12 +43,15 @@ script-files = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["madmom*"]
-exclude = [
-    "tests*",
-    "docs*",
-    "madmom.evaluation*",
-    "madmom.piracy*",
+include = [
+    "madmom",
+    "madmom.audio",
+    "madmom.features",
+    "madmom.io",
+    "madmom.ml",
+    "madmom.ml.nn",
+    "madmom.models",
+    "madmom.utils",
 ]
 
 [tool.setuptools.package-data]
@@ -62,31 +65,7 @@ madmom = [
 "*" = ["tests", "docs"]
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst" }
+readme = { file = ["README.rst"], content-type = "text/x-rst" }
 
 [tool.pytest.ini_options]
-# The suite deliberately exercises legacy API compatibility and undefined
-# numerical edge cases. Keep those exact, reviewed warnings out of normal test
-# output while allowing every unrecognized warning to remain visible.
-filterwarnings = [
-    'ignore:^Deprecated as of version 0\.16\. Please use madmom\.io\.midi instead\..*:UserWarning',
-    'ignore:^Deprecated as of version 0\.16\. Please use madmom\.io\.audio\.write_wave_file instead\..*:UserWarning',
-    "ignore:^`circular_shift` of the STFT must be set to 'True' for correct phase$:RuntimeWarning",
-    'ignore:^Please update your GRU models by loading them and saving them again\..*:RuntimeWarning',
-    'ignore:^Usage of `method` is deprecated as of version 0\.17\..*:UserWarning',
-    'ignore:^make sure that the `frame_size` \(2048\) is equal to the maximum value used by any `FramedSignalProcessor`\.$:UserWarning',
-    'ignore:^Please update your GMM models by loading them and saving them again\..*:UserWarning',
-    'ignore:^Not enough beat annotations \(\d+\) for \d+ histogram bins\.$:UserWarning',
-    'ignore:^annotated tempo strengths do not sum to 1, normalizing$:UserWarning',
-    'ignore:^no annotated tempo strengths given, assuming a uniform distribution$:UserWarning',
-    'ignore:^Mean of empty slice$:RuntimeWarning:madmom\.evaluation.*',
-    'ignore:^mean_error is given for all notes, this will change!$:UserWarning',
-    'ignore:^std_error is given for all notes, this will change!$:UserWarning',
-    'ignore:^divide by zero encountered in log$:RuntimeWarning:madmom\.features\.beats_hmm$',
-    'ignore:^divide by zero encountered in log$:RuntimeWarning:.*test_ml_hmm$',
-    'ignore:^-inf log probability during Viterbi decoding cannot find a valid path$:RuntimeWarning',
-    'ignore:^invalid value encountered in log$:RuntimeWarning:madmom\.features\.beats_hmm$',
-    'ignore:^Beat sequence too long compared to features\.$:UserWarning',
-    'ignore:^`mirex` argument is deprecated as of version 0\.16 and will be removed in version 0\.17\..*:UserWarning',
-    'ignore:^`shift` parameter is deprecated as of version 0\.16 and will be removed in version 0\.18\..*:UserWarning',
-]
+testpaths = ["tests/test_spectrum_boundary.py"]

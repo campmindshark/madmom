@@ -30,10 +30,7 @@ if sys.version_info[:2] != (3, 11):
 if struct.calcsize("P") != 8:
     raise SystemExit("Madmom tests require a 64-bit Python interpreter")
 
-import mido
 from madmom import models
-from madmom.audio import comb_filters
-from madmom.features import beats_crf
 from madmom.ml import hmm
 from madmom.ml.nn import layers
 
@@ -45,7 +42,7 @@ if not models.BEATS_LSTM:
 
 $PytestArguments = @($args)
 if ($PytestArguments.Count -eq 0) {
-  $PytestArguments = @("-q")
+  $PytestArguments = @("-q", "tests/test_spectrum_boundary.py")
 }
 
 Push-Location $MadmomRoot

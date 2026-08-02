@@ -438,60 +438,6 @@ def sound_pressure_level(signal, p_ref=None):
         return np.nan_to_num(20.0 * np.log10(rms / p_ref))
 
 
-# functions to load / write audio files
-class LoadAudioFileError(Exception):
-    """
-    Deprecated as of version 0.16. Please use
-    madmom.io.audio.LoadAudioFileError instead. Will be removed in version
-    0.18.
-
-    """
-    # pylint: disable=super-init-not-called
-
-    def __init__(self, value=None):
-        warnings.warn(LoadAudioFileError.__doc__)
-        if value is None:
-            value = 'Could not load audio file.'
-        self.value = value
-
-
-def load_wave_file(*args, **kwargs):
-    """
-    Deprecated as of version 0.16. Please use madmom.io.audio.load_wave_file
-    instead. Will be removed in version 0.18.
-
-    """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'load_wave_file instead. Will be removed in version 0.18.')
-    from ..io.audio import load_wave_file
-    return load_wave_file(*args, **kwargs)
-
-
-def write_wave_file(*args, **kwargs):
-    """
-    Deprecated as of version 0.16. Please use madmom.io.audio.write_wave_file
-    instead. Will be removed in version 0.18.
-
-    """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'write_wave_file instead. Will be removed in version 0.18.')
-    from ..io.audio import write_wave_file
-    return write_wave_file(*args, **kwargs)
-
-
-# function for automatically determining how to open audio files
-def load_audio_file(*args, **kwargs):
-    """
-    Deprecated as of version 0.16. Please use madmom.io.audio.load_audio_file
-    instead. Will be removed in version 0.18.
-
-    """
-    warnings.warn('Deprecated as of version 0.16. Please use madmom.io.audio.'
-                  'load_audio_file instead. Will be removed in version 0.18.')
-    from ..io.audio import load_audio_file
-    return load_audio_file(*args, **kwargs)
-
-
 # signal classes
 SAMPLE_RATE = None
 NUM_CHANNELS = None
@@ -692,6 +638,7 @@ class Signal(np.ndarray):
             Name of the written file.
 
         """
+        from ..io.audio import write_wave_file
         return write_wave_file(self, filename)
 
     def energy(self):

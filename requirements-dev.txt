@@ -1,9 +1,6 @@
 -r requirements-runtime.txt
 
 # Build and test toolchain. Keep these aligned with pyproject.toml.
-# Mido is retained only for the upstream MIDI compatibility tests; Spectrum's
-# DBN runtime does not import or ship it.
-mido==1.3.3
 colorama==0.4.6; platform_system == "Windows"
 Cython==3.2.8
 iniconfig==2.3.0

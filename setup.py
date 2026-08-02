@@ -19,8 +19,6 @@ def extension(name, source):
 
 
 extensions = [
-    extension('madmom.audio.comb_filters', 'madmom/audio/comb_filters.pyx'),
-    extension('madmom.features.beats_crf', 'madmom/features/beats_crf.pyx'),
     extension('madmom.ml.hmm', 'madmom/ml/hmm.pyx'),
     extension('madmom.ml.nn.layers', 'madmom/ml/nn/layers.py'),
 ]

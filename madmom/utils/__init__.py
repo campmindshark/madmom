@@ -16,20 +16,10 @@ import io
 
 import numpy as np
 
-# Python 2/3 string compatibility (like six does it)
-try:
-    string_types = basestring
-    integer_types = (int, long, np.integer)
-except NameError:
-    string_types = str
-    integer_types = (int, np.integer)
-
-
-# Python 2/3 file compatibility
-try:
-    file_types = (io.IOBase, file)
-except NameError:
-    file_types = io.IOBase
+# Spectrum requires Python 3.11 or newer.
+string_types = str
+integer_types = (int, np.integer)
+file_types = io.IOBase
 
 
 # decorator to suppress warnings
