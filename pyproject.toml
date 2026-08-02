@@ -21,7 +21,6 @@ license-files = ["LICENSE"]
 dependencies = [
     "numpy>=1.26,<2",
     "scipy>=1.13",
-    "mido>=1.2.6",
 ]
 classifiers = [
     "Development Status :: 3 - Beta",
@@ -40,50 +39,23 @@ Source = "https://github.com/CPJKU/madmom"
 [tool.setuptools]
 include-package-data = false
 script-files = [
-    "bin/BarTracker",
-    "bin/BeatDetector",
-    "bin/BeatTracker",
-    "bin/CNNChordRecognition",
-    "bin/CNNOnsetDetector",
-    "bin/ComplexFlux",
-    "bin/CRFBeatDetector",
     "bin/DBNBeatTracker",
-    "bin/DBNDownBeatTracker",
-    "bin/DCChordRecognition",
-    "bin/evaluate",
-    "bin/GMMPatternTracker",
-    "bin/KeyRecognition",
-    "bin/LogFiltSpecFlux",
-    "bin/MMBeatTracker",
-    "bin/OnsetDetector",
-    "bin/OnsetDetectorLL",
-    "bin/PianoTranscriptor",
-    "bin/PickleProcessor",
-    "bin/SpectralOnsetDetection",
-    "bin/SuperFlux",
-    "bin/SuperFluxNN",
-    "bin/TCNBeatTracker",
-    "bin/TCNTempoDetector",
-    "bin/TempoDetector",
-    "bin/TorchBeatTracker",
 ]
 
 [tool.setuptools.packages.find]
 include = ["madmom*"]
-exclude = ["tests*", "docs*"]
+exclude = [
+    "tests*",
+    "docs*",
+    "madmom.evaluation*",
+    "madmom.piracy*",
+]
 
 [tool.setuptools.package-data]
 madmom = [
     "models/LICENSE",
     "models/README.rst",
-    "models/beats/201[569]/*",
-    "models/chords/*/*",
-    "models/chroma/*/*",
-    "models/downbeats/*/*",
-    "models/key/2018/*",
-    "models/notes/*/*",
-    "models/onsets/*/*",
-    "models/patterns/*/*",
+    "models/beats/2016/beats_lstm_[1-8].pkl",
 ]
 
 [tool.setuptools.exclude-package-data]

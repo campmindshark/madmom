@@ -363,7 +363,6 @@ function Remove-PortableRuntimeExtras {
 
   $requiredMetadataPatterns = @(
     "madmom-*.dist-info",
-    "mido-*.dist-info",
     "numpy-*.dist-info",
     "packaging-*.dist-info",
     "pyaudio-*.dist-info",
@@ -559,7 +558,7 @@ Push-Location $buildDirectory
 try {
   Invoke-Checked -FilePath $wheelTestPython -Arguments @(
     "-c",
-    "from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; assert len(models.BEATS_LSTM) == 8; assert len(models.BEATS_TCN) == 8; print('wheel imports and models: OK')"
+    "import importlib.util as util; from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; print('wheel imports and Spectrum boundary: OK')"
   )
 } finally {
   Pop-Location
@@ -567,7 +566,7 @@ try {
 Invoke-DbnSmokeTest `
   -Interpreter $wheelTestPython `
   -ScriptsDirectory (Join-Path $wheelTestEnvironment "Scripts") `
-  -ProcessingMode "single"
+  -ProcessingMode "online"
 
 if ($PortableRuntimeDirectory) {
   Write-Step "Staging the portable Python runtime"
@@ -605,7 +604,7 @@ if ($PortableRuntimeDirectory) {
     Invoke-Checked -FilePath $runtimePython -Arguments @(
       "-B",
       "-c",
-      "import importlib.metadata as metadata; import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert metadata.version('madmom') == madmom.__version__; print('portable runtime:', madmom.__version__)"
+      "import importlib.metadata as metadata; import importlib.util as util; import madmom, numpy, scipy, pyaudio; from madmom import models; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; assert metadata.version('madmom') == madmom.__version__; print('portable runtime:', madmom.__version__)"
     )
   } finally {
     Pop-Location

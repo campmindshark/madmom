@@ -12,7 +12,6 @@ import io as _io
 import numpy as np
 
 from .audio import load_audio_file
-from .midi import load_midi, write_midi
 from ..utils import suppress_warnings, string_types
 
 ENCODING = 'utf8'

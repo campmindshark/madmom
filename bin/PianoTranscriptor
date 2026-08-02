@@ -16,7 +16,8 @@ from madmom.audio.signal import SignalProcessor
 from madmom.features import ActivationsProcessor
 from madmom.features.notes import (ADSRNoteTrackingProcessor,
                                    CNNPianoNoteProcessor)
-from madmom.io import write_midi, write_notes
+from madmom.io import write_notes
+from madmom.io.midi import write_midi
 from madmom.processors import IOProcessor, io_arguments
 
 

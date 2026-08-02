@@ -56,12 +56,12 @@ esac
 output=$(
   "$runtime_python" \
     "$temp_root/runtime/bin/DBNBeatTracker" \
-    --host_api_name auto single "$sample" 2>&1
+    --host_api_name auto online "$sample" 2>&1
 )
 beat_count=$(grep -c '^BEAT:' <<<"$output")
-if [[ "$beat_count" -ne 8 ]]; then
+if [[ "$beat_count" -ne 5 ]]; then
   printf '%s\n' "$output" >&2
-  printf 'Expected 8 DBN smoke-test beats; found %s.\n' "$beat_count" >&2
+  printf 'Expected 5 DBN smoke-test beats; found %s.\n' "$beat_count" >&2
   exit 1
 fi
 

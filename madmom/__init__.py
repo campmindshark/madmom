@@ -19,8 +19,10 @@ import doctest
 
 from importlib.metadata import distribution
 
-# import all packages
-from . import audio, evaluation, features, io, ml, models, processors, utils
+# Import the packages used by Spectrum's beat-tracking boundary. Evaluation
+# and optional PyTorch trackers remain source-only maintenance surfaces and are
+# not installed in the application wheel.
+from . import audio, features, io, ml, models, processors, utils
 
 # define a version variable
 __version__ = distribution("madmom")  .version

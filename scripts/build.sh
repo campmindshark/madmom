@@ -128,7 +128,7 @@ assert_python() {
 
 assert_native_imports() {
   "$1" -c \
-    "from pathlib import Path; import madmom, numpy, pyaudio, scipy; from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; native = (comb_filters, beats_crf, hmm, layers); assert all(Path(module.__file__).suffix == '.so' for module in native), [module.__file__ for module in native]; assert len(models.BEATS_LSTM) == 8; assert len(models.BEATS_TCN) == 8; print('native runtime imports: OK'); print(*(module.__file__ for module in native), sep='\n')"
+    "from importlib import util; from pathlib import Path; import madmom, numpy, pyaudio, scipy; from madmom import models; from madmom.audio import comb_filters; from madmom.features import beats_crf; from madmom.ml import hmm; from madmom.ml.nn import layers; native = (comb_filters, beats_crf, hmm, layers); assert all(Path(module.__file__).suffix == '.so' for module in native), [module.__file__ for module in native]; assert len(models.BEATS_LSTM) == 8; assert not models.BEATS_BLSTM; assert not models.BEATS_TCN; assert util.find_spec('mido') is None; assert util.find_spec('madmom.evaluation') is None; assert util.find_spec('madmom.piracy') is None; print('native runtime imports: OK'); print(*(module.__file__ for module in native), sep='\n')"
 }
 
 dbn_smoke_test() {
@@ -144,7 +144,7 @@ dbn_smoke_test() {
     exit 1
   fi
   output=$(
-    "$interpreter" "$tracker" --host_api_name auto single "$sample" 2>&1
+    "$interpreter" "$tracker" --host_api_name auto online "$sample" 2>&1
   )
   if ! grep -q '^BEAT:' <<<"$output"; then
     printf '%s\n' "$output" >&2
